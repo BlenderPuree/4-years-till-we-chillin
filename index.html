@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Four-year countdown</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;600;700&display=swap">
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+--bg:#f1f4f2;--ink:#12262e;--dim:#5d727a;--gone:#c9d5d6;--left:#12262e;--now:#e8542f;}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0d1d24;--ink:#eaf2f1;--dim:#8ba3a9;--gone:#1f3943;--left:#eaf2f1;--now:#ff7a4d;}}
+:root[data-theme="dark"]{--bg:#0d1d24;--ink:#eaf2f1;--dim:#8ba3a9;--gone:#1f3943;--left:#eaf2f1;--now:#ff7a4d;}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Familjen Grotesk",system-ui,sans-serif;line-height:1.4}
+main{max-width:960px;margin:0 auto;padding:40px 20px 56px}
+h1{font-size:clamp(1.1rem,3.5vw,1.4rem);font-weight:600;margin:0 0 28px;color:var(--dim)}
+h1 b{color:var(--ink)}
+.clock{display:grid;grid-template-columns:repeat(3,1fr);gap:20px 12px}
+@media(min-width:720px){.clock{grid-template-columns:repeat(6,1fr)}}
+.u{min-width:0}
+.n{display:block;font-size:clamp(3rem,13vw,6.5rem);font-weight:700;line-height:.95;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.l{display:block;margin-top:6px;color:var(--dim);font-size:.95rem}
+.u.s .n{color:var(--now)}
+.bar{margin:44px 0 10px;display:flex;justify-content:space-between;gap:12px;font-size:.95rem;color:var(--dim);flex-wrap:wrap}
+.bar b{color:var(--ink);font-variant-numeric:tabular-nums}
+#grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(9px,1fr));gap:3px}
+#grid i{aspect-ratio:1;border-radius:50%;background:var(--left)}
+#grid i.g{background:var(--gone)}
+#grid i.t{background:var(--now);animation:p 1.6s ease-in-out infinite}
+@keyframes p{50%{transform:scale(1.9)}}
+@media(prefers-reduced-motion:reduce){#grid i.t{animation:none}}
+.note{margin-top:14px;color:var(--dim);font-size:.9rem;max-width:60ch}
+</style>
+</head>
+<body>
+<main>
+<h1>Time left until <b>29 September 2030</b></h1>
+<div class="clock" role="timer" aria-label="Countdown to 29 September 2030">
+<div class="u"><span class="n" id="y">0</span><span class="l" id="ly">years</span></div>
+<div class="u"><span class="n" id="mo">0</span><span class="l" id="lmo">months</span></div>
+<div class="u"><span class="n" id="d">0</span><span class="l" id="ld">days</span></div>
+<div class="u"><span class="n" id="h">00</span><span class="l">hours</span></div>
+<div class="u"><span class="n" id="mi">00</span><span class="l">minutes</span></div>
+<div class="u s"><span class="n" id="s">00</span><span class="l">seconds</span></div>
+</div>
+<div class="bar"><span><b id="pct">0%</b> elapsed</span><span><b id="left">1,461</b> days left of 1,461</span></div>
+<div id="grid" aria-hidden="true"></div>
+<p class="note">Each dot is one day. Filled dots are still ahead, faded dots have passed, and the orange dot is today.</p>
+</main>
+<script>
+(function(){
+var START=new Date(2026,8,29,0,0,0), END=new Date(2030,8,29,0,0,0), DAY=864e5;
+var TOTAL=Math.round((END-START)/DAY);
+var grid=document.getElementById('grid'), dots=[];
+for(var i=0;i<TOTAL;i++){var e=document.createElement('i');grid.appendChild(e);dots.push(e);}
+function $(id){return document.getElementById(id)}
+function pad(n){return n<10?'0'+n:''+n}
+function addMonths(d,m){var r=new Date(d.getFullYear(),d.getMonth()+m,1,d.getHours(),d.getMinutes(),d.getSeconds());
+var last=new Date(r.getFullYear(),r.getMonth()+1,0).getDate();r.setDate(Math.min(d.getDate(),last));return r}
+function plural(n,w){return n===1?w:w+'s'}
+var lastDay=-2;
+function tick(){
+var now=new Date();
+if(now>=END){['y','mo','d'].forEach(function(k){$(k).textContent='0'});['h','mi','s'].forEach(function(k){$(k).textContent='00'});
+$('pct').textContent='100%';$('left').textContent='0';dots.forEach(function(x){x.className='g'});return}
+var months=(END.getFullYear()-now.getFullYear())*12+END.getMonth()-now.getMonth();
+if(addMonths(now,months)>END)months--;
+var anchor=addMonths(now,months), ms=END-anchor;
+var d=Math.floor(ms/DAY);ms-=d*DAY;
+var h=Math.floor(ms/36e5);ms-=h*36e5;
+var mi=Math.floor(ms/6e4);ms-=mi*6e4;
+var s=Math.floor(ms/1e3);
+var y=Math.floor(months/12), mo=months%12;
+$('y').textContent=y;$('mo').textContent=mo;$('d').textContent=d;
+$('ly').textContent=plural(y,'year');$('lmo').textContent=plural(mo,'month');$('ld').textContent=plural(d,'day');
+$('h').textContent=pad(h);$('mi').textContent=pad(mi);$('s').textContent=pad(s);
+var el=Math.max(0,Math.min(1,(now-START)/(END-START)));
+$('pct').textContent=(el*100).toFixed(4)+'%';
+var passed=Math.max(0,Math.floor((now-START)/DAY));
+$('left').textContent=(TOTAL-passed).toLocaleString('en-US');
+if(passed!==lastDay){
+for(var i=0;i<TOTAL;i++)dots[i].className=i<passed?'g':(i===passed?'t':'');
+lastDay=passed}
+}
+tick();setInterval(tick,250);
+})();
+</script>
+</body>
+</html>
